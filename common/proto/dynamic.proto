@@ -1,0 +1,179 @@
+syntax = "proto3";
+package proto;
+option go_package = "common/proto";
+
+message DynamicMessage {
+  string type = 1;
+  bytes value = 2;
+}
+
+message Statement {
+  string sql = 1;
+  string gql = 2;
+  bool enableDistributeQuery = 3;
+}
+
+message ColumnValueRef{
+  string name = 1;
+  string type = 2;
+  bytes value = 3;
+}
+
+message RowRef {
+  repeated ColumnValueRef columns = 1 ;
+}
+
+message Page {
+	repeated RowRef Rows = 1;
+}
+
+message Results {
+  int32 code = 1;
+  string message = 2;
+  repeated RowRef rows = 3;
+}
+
+message InternalNode {
+  string Ip  = 1;    
+  string  BoundIp = 2; 
+  int32  Port = 3;   
+  string  Name = 4;   
+}
+
+message RegisterWorkerNodeRequest {
+  InternalNode workerNode = 1; 
+}
+
+message RegisterWorkerNodeResult {
+  int32 code = 1;
+  string message = 2;
+}
+
+message AllWorkerNodeResult {
+  int32 code = 1;
+  string message = 2;
+  repeated InternalNode nodes = 3;
+}
+
+message GetTaskResultRequest {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 requestTaskId = 3;
+  int32 upstreamTaskId = 4;
+  int32 maxPageSize = 5;
+}
+
+message TaskResult {
+  int32 code = 1;
+  string message = 2;
+  repeated Page Pages = 3;
+}
+
+message TaskSource {
+  int32 sourcePlanNodeId = 1;
+	bytes splits = 2;
+	bool noMoreSplits = 3;    
+}
+
+message OutputBuffers {
+  map<int32, int32> taskBufferMap = 1; 
+	string bufferType = 2;  
+  int32 version = 3;         
+}
+
+message CreateOrUpdateTaskRequest {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 taskId = 3;
+  repeated TaskSource taskSources = 4;
+  OutputBuffers outputBuffers = 5;
+  bytes planFragment = 6;
+}
+
+message CreateOrUpdateTaskResult {
+  int32 code = 1;
+  string message = 2;
+}
+
+message DeleteTaskRequest {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 taskId = 3;
+}
+
+message DeleteTaskResult {
+  int32 code = 1;
+  string message = 2;
+}
+
+message GetTaskStatusRequest {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 taskId = 3;
+}
+
+message GetTaskStatusResult {
+  string taskStatus = 1;
+}
+
+message GetTaskInfoRequest {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 taskId = 3;
+}
+
+message GetTaskInfoResult {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 TaskId = 3;       
+	string TaskStatus = 4;   
+	int64 LastHeartbeat = 5;
+	int64 CreateTime = 6;
+}
+
+message GetTaskNodeInfoRequest {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 taskId = 3;
+}
+
+message TaskNodeInfo {
+  string queryId = 1;
+  int32 stageId = 2;
+  int32 TaskId = 3; 
+  InternalNode node = 4;
+}
+
+message InitSessionRequest {
+  string message = 1;
+}
+
+message InitSessionResult {
+  int32 code = 1;
+  string message = 2;
+  string SessionId = 3;
+}
+
+message SimplePlanNode {
+  string nodeId = 1;
+  string nodeName = 2;
+  string extra = 3;
+}
+
+message Stage {
+  string stageId = 1; 
+	string status = 2;
+  int32 inputRows = 3;
+  repeated SimplePlanNode planNodes = 4;
+}
+
+message IdRelation {
+  string id = 1;
+  string parentId = 2;
+}
+
+message Profile {
+  repeated Stage stages = 1;
+  repeated IdRelation stagePlanNodeIdRelations = 2;
+} 
+

@@ -1,0 +1,45 @@
+syntax = "proto3";
+package proto;
+option go_package = "client/api/proto";
+
+import "google/api/annotations.proto";
+import "common/proto/dynamic.proto";
+
+message DiagnoseResults {
+  int32 code = 1;
+  bytes review = 2;
+  bytes explain = 3;
+  bytes profile = 4; 
+}
+
+service SynapseService {
+  rpc execute(Statement) returns (Results) {
+    option (google.api.http) = {
+      post: "/v1/execute-statement"
+      body: "*"
+    };
+  }
+
+
+  // coordinator apis
+  // rpc registerWorkerNode(RegisterWorkerNodeRequest) returns (RegisterWorkerNodeResult) {
+  //   option (google.api.http) = {
+  //     post: "/v1/coordinator/registerWorkerNode"
+  //     body: "*"
+  //   };
+  // }
+
+  // rpc getAllWorkerNode() returns (AllWorkerNodeResult) {
+  //   option (google.api.http) = {
+  //     get: "/v1/coordinator/getAllWorkerNode"
+  //     body: "*"
+  //   };
+  // }
+
+  // rpc selectRandomWorkerNode() returns (InternalNode) {
+  //   option (google.api.http) = {
+  //     get: "/v1/coordinator/selectRandomNode"
+  //     body: "*"
+  //   };
+  // }
+}
