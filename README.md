@@ -2,7 +2,7 @@
 This a go client for kinedb, user can import this package to connect kinedb. kinedb-client-go support CRUD base operation.
 Guiding:
 
-# driver client using ip and project
+# driver client using ip and port
 [examples](examples/driver_use_ip_port.go)
 
 # simple client when you are in kinedb cluster
