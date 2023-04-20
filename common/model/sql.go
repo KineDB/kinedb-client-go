@@ -1,6 +1,6 @@
 package model
 
-import "github.com/industry-tenebris/kinedb-goclient/common/utils"
+import "github.com/KineDB/kinedb-client-go/common/utils"
 
 type ExecuteSQLRequest struct {
 	Sql                   string `json:"sql"`

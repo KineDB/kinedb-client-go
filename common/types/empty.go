@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/industry-tenebris/kinedb-goclient/common/errors"
+	"github.com/KineDB/kinedb-client-go/common/errors"
 )
 
 // EmptyType it is a special Type, represents no data/Null

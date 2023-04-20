@@ -16,11 +16,11 @@ const (
 	deprecationComment = "// Deprecated: Do not use."
 
 	contextPackage = protogen.GoImportPath("context")
-	errorsPackage  = protogen.GoImportPath("github.com/industry-tenebris/kinedb-goclient/common/errors")
+	errorsPackage  = protogen.GoImportPath("github.com/KineDB/kinedb-client-go/common/errors")
 	grpcPackage    = protogen.GoImportPath("google.golang.org/grpc")
 	ioPackage      = protogen.GoImportPath("io")
 	logrusPackage  = protogen.GoImportPath("github.com/sirupsen/logrus")
-	servicePackage = protogen.GoImportPath("github.com/industry-tenebris/kinedb-goclient/common/service")
+	servicePackage = protogen.GoImportPath("github.com/KineDB/kinedb-client-go/common/service")
 )
 
 func protocVersion(gen *protogen.Plugin) string {

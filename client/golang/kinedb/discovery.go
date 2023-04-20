@@ -1,6 +1,6 @@
 package kinedb
 
-import "github.com/industry-tenebris/kinedb-goclient/agent/etcd"
+import "github.com/KineDB/kinedb-client-go/agent/etcd"
 
 func DiscoveryAddr(etcdAddr string) {
 	config := etcd.ServerConfig{

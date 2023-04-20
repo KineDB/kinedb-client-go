@@ -26,10 +26,10 @@ import (
 
 	"github.com/google/uuid"
 
-	client "github.com/industry-tenebris/kinedb-goclient/client/api"
-	"github.com/industry-tenebris/kinedb-goclient/common/model"
-	commonProto "github.com/industry-tenebris/kinedb-goclient/common/proto"
-	"github.com/industry-tenebris/kinedb-goclient/common/types"
+	client "github.com/KineDB/kinedb-client-go/client/api"
+	"github.com/KineDB/kinedb-client-go/common/model"
+	commonProto "github.com/KineDB/kinedb-client-go/common/proto"
+	"github.com/KineDB/kinedb-client-go/common/types"
 
 	// "synapsedb.io/pkg/synapse/api/client"
 	"time"

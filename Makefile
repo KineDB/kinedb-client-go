@@ -19,7 +19,7 @@ endef
 
 # Compute dependencies for each command in ./cmds
 define CMD_DEPS
-$(strip $(if $(1),$(patsubst %,../%,$(filter-out $(1),$(subst github.com/industry-tenebris/kinedb-goclient,.,$(filter github.com/industry-tenebris/kinedb-goclient/%,$(shell go list -deps ./$(1)))))),))
+$(strip $(if $(1),$(patsubst %,../%,$(filter-out $(1),$(subst github.com/KineDB/kinedb-client-go,.,$(filter github.com/KineDB/kinedb-client-go/%,$(shell go list -deps ./$(1)))))),))
 endef
 
 .PHONY: all

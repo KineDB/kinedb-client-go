@@ -8,7 +8,7 @@ package proto
 
 import (
 	context "context"
-	proto "github.com/industry-tenebris/kinedb-goclient/common/proto"
+	proto "github.com/KineDB/kinedb-client-go/common/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"

@@ -1,6 +1,6 @@
 package etcd
 
-import "github.com/industry-tenebris/kinedb-goclient/common/utils"
+import "github.com/KineDB/kinedb-client-go/common/utils"
 
 type ClientConfig struct {
 	Ip      string

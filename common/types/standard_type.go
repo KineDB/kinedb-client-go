@@ -1,6 +1,6 @@
 package types
 
-import "github.com/industry-tenebris/kinedb-goclient/common/errors"
+import "github.com/KineDB/kinedb-client-go/common/errors"
 
 /*
 	SynapseDB Build-in unified standard types name for SQL

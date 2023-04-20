@@ -8,8 +8,8 @@ package proto
 
 import (
 	context "context"
-	errors "github.com/industry-tenebris/kinedb-goclient/common/errors"
-	proto "github.com/industry-tenebris/kinedb-goclient/common/proto"
+	errors "github.com/KineDB/kinedb-client-go/common/errors"
+	proto "github.com/KineDB/kinedb-client-go/common/proto"
 	grpc "google.golang.org/grpc"
 )
 

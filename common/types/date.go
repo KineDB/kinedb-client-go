@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	"github.com/industry-tenebris/kinedb-goclient/common/errors"
+	"github.com/KineDB/kinedb-client-go/common/errors"
 )
 
 // A time is stored as milliseconds from midnight on 1970-01-01T00:00:00 .

@@ -1,4 +1,4 @@
-module github.com/industry-tenebris/kinedb-goclient
+module github.com/KineDB/kinedb-client-go
 
 go 1.19
 

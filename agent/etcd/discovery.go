@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/industry-tenebris/kinedb-goclient/common/utils"
+	"github.com/KineDB/kinedb-client-go/common/utils"
 	log "github.com/sirupsen/logrus"
 	"go.etcd.io/etcd/api/v3/mvccpb"
 	clientv3 "go.etcd.io/etcd/client/v3"

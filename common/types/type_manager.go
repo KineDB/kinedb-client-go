@@ -11,8 +11,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/industry-tenebris/kinedb-goclient/common/errors"
-	"github.com/industry-tenebris/kinedb-goclient/common/utils"
+	"github.com/KineDB/kinedb-client-go/common/errors"
+	"github.com/KineDB/kinedb-client-go/common/utils"
 )
 
 /*

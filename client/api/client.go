@@ -7,12 +7,12 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/industry-tenebris/kinedb-goclient/agent/etcd"
-	"github.com/industry-tenebris/kinedb-goclient/client/api/proto"
-	"github.com/industry-tenebris/kinedb-goclient/common/errors"
-	"github.com/industry-tenebris/kinedb-goclient/common/model"
-	commonProto "github.com/industry-tenebris/kinedb-goclient/common/proto"
-	"github.com/industry-tenebris/kinedb-goclient/common/utils"
+	"github.com/KineDB/kinedb-client-go/agent/etcd"
+	"github.com/KineDB/kinedb-client-go/client/api/proto"
+	"github.com/KineDB/kinedb-client-go/common/errors"
+	"github.com/KineDB/kinedb-client-go/common/model"
+	commonProto "github.com/KineDB/kinedb-client-go/common/proto"
+	"github.com/KineDB/kinedb-client-go/common/utils"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -38,7 +38,7 @@ func getSClient() proto.SynapseServiceClient {
 }
 
 func ExecuteSQL(ctx context.Context, request model.ExecuteSQLRequest) *commonProto.Results {
-	log.Infof("ExecuteSQL sql: %s", request)
+	log.Infof("ExecuteSQL sql: %+v", request)
 	//sessionId := session.GetSessionId(ctx)
 	//log.Infof("ExecuteSQL sql sessionId: {}", sessionId)
 	client := getSClient()

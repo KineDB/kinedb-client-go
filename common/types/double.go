@@ -3,7 +3,7 @@ package types
 import (
 	"fmt"
 
-	"github.com/industry-tenebris/kinedb-goclient/common/errors"
+	"github.com/KineDB/kinedb-client-go/common/errors"
 )
 
 type DoubleType struct {

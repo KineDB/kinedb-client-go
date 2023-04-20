@@ -1,21 +1,11 @@
-# kinedb-goclient
-This a go client for kinedb, user can import this package to connect kinedb. kinedb-goclient support CRUD base operation.
+# kinedb-client-go
+This a go client for kinedb, user can import this package to connect kinedb. kinedb-client-go support CRUD base operation.
 Guiding:
-Setp1: go get this client to you project
 
-go get github.com/industry-tenebris/kinedb-goclient
+# driver client using ip and project
+[examples](examples/driver_use_ip_port.go)
 
-Setp2: connect to kinedb server, for example:
+# simple client when you are in kinedb cluster
+[examples](examples/simple_etcd_cluster.go)
 
-func main() {
-	//init addr discovery
-	kinedb.DiscoveryAddr("127.0.0.1:2379")
-
-	// query
-	sql := "select id, code, name from mysql100.gql_test01"
-	ctx := context.Background()
-	res := client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql})
-
-	fmt.Printf("res: %+v", res)
-}
 
