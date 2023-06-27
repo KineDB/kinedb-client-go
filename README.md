@@ -39,25 +39,25 @@ func main() {
 	//insert
 	sql := "insert into mysql1.test( id, code, name) values (3, \"a\", \"test1\"),(2, \"ab\", \"test2\") "
 	ctx := context.Background()
-	res := client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql})
+	res := client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql, Engine:"native"})
 	fmt.Printf("res: %+v", res)
 
 	// select
 	sql = "select id, code, name from mysql1.test"
 	ctx = context.Background()
-	res = client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql})
+	res = client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql, Engine:"presto"})
 	fmt.Printf("res: %+v", res)
 
 	// update
 	sql = "update mysql1.test set name=\"test02\" where id = 2"
 	ctx = context.Background()
-	res = client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql})
+	res = client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql, Engine:"native"})
 	fmt.Printf("res: %+v", res)
 
 	// delete
 	sql = "delete from mysql100.gql_test01 where id = 2"
 	ctx = context.Background()
-	res = client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql})
+	res = client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql, Engine:"native"})
 	fmt.Printf("res: %+v", res)
 }
 ```
