@@ -3,10 +3,12 @@ package model
 import "github.com/KineDB/kinedb-client-go/common/utils"
 
 type ExecuteSQLRequest struct {
-	Sql    string `json:"sql"`
-	Gql    string `json:"gql"`
-	Prompt string `json:"prompt"`
-	Engine string `json:"engine"`
+	Sql             string `json:"sql"`
+	Gql             string `json:"gql"`
+	Prompt          string `json:"prompt"`
+	Engine          string `json:"engine"`
+	DefaultDatabase string `json:"defaultDatabase"`
+	FetchSize       int32  `json:"fetchSize"`
 }
 
 type ExecuteSQLResult struct {

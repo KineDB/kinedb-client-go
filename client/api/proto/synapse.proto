@@ -6,6 +6,8 @@ import "common/proto/dynamic.proto";
 
 service SynapseService
 {
-  rpc execute(Statement) returns (Results){}
+  rpc execute(Statement) returns (Results);
+
+  rpc streamExecute(Statement) returns (stream Results);
 }
 

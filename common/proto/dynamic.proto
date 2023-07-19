@@ -7,6 +7,8 @@ message Statement {
   string gql = 2;
   string prompt = 3;
   string engine = 4;
+  string defaultDatabase = 5;
+  int32 fetchSize = 6; 
 }
 
 message ColumnValueRef{

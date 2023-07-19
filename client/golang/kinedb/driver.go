@@ -27,6 +27,7 @@ import (
 	"github.com/google/uuid"
 
 	client "github.com/KineDB/kinedb-client-go/client/api"
+	"github.com/KineDB/kinedb-client-go/client/api/proto"
 	"github.com/KineDB/kinedb-client-go/common/model"
 	commonProto "github.com/KineDB/kinedb-client-go/common/proto"
 	"github.com/KineDB/kinedb-client-go/common/types"
@@ -83,10 +84,15 @@ type Config struct {
 
 // Conn is a kinedb connection.
 type Conn struct {
-	baseURL       string
-	userName      string
-	password      string
-	discoveryAddr string
+	baseURL           string
+	addr              string
+	userName          string
+	password          string
+	discoveryAddr     string
+	defaultDatabase   string
+	engine            string
+	fetchSize         int32
+	enableStreamQuery bool
 }
 
 var (
@@ -104,8 +110,16 @@ func newConn(dsn string) (*Conn, error) {
 		baseURL:       kinedbDsn.Net + "/" + kinedbDsn.DBName,
 		discoveryAddr: kinedbDsn.Net,
 	}
+	c.addr = kinedbDsn.Addr
+	if c.addr == "" {
+		c.addr = kinedbDsn.Net
+	}
 	c.userName = kinedbDsn.User
 	c.password = kinedbDsn.Passwd
+	c.defaultDatabase = kinedbDsn.DBName
+	c.engine = kinedbDsn.Engine
+	c.fetchSize = kinedbDsn.FetchSize
+	c.enableStreamQuery = kinedbDsn.enableStreamQuery
 
 	DiscoveryAddr(c.discoveryAddr)
 	return c, nil
@@ -288,7 +302,31 @@ func (st *driverStmt) Query(args []driver.Value) (driver.Rows, error) {
 
 func (st *driverStmt) QueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
 	query := st.query
-	resultData := client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: query})
+	request := model.ExecuteSQLRequest{Sql: query,
+		DefaultDatabase: st.conn.defaultDatabase,
+		Engine:          st.conn.engine,
+		FetchSize:       st.conn.fetchSize,
+	}
+
+	//
+	if st.conn.enableStreamQuery {
+		streamClient := client.StreamExecuteSQLWithAddr(ctx, st.conn.addr, request)
+		rows := &streamDriverRows{
+			ctx:          ctx,
+			stmt:         st,
+			streamClient: streamClient,
+			id:           uuid.New().String(),
+		}
+		// invoke one time
+		if err := rows.streamFetch(false); err != nil {
+			return rows, err
+		}
+		// reset rowindex
+		rows.rowindex = 0
+		return rows, nil
+	}
+
+	resultData := client.ExecuteSQLWithAddr(ctx, st.conn.addr, request)
 
 	rows := &driverRows{
 		ctx:           ctx,
@@ -317,6 +355,35 @@ func (st *driverStmt) QueryContext(ctx context.Context, args []driver.NamedValue
 	return rows, nil
 }
 
+func (st *driverStmt) StreamQueryContext(ctx context.Context, args []driver.NamedValue) (driver.Rows, error) {
+	query := st.query
+	streamClient := client.StreamExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: query})
+
+	rows := &streamDriverRows{
+		ctx:          ctx,
+		stmt:         st,
+		streamClient: streamClient,
+		// TODO a query id must return from kinedb
+		id:      uuid.New().String(),
+		hasNext: false,
+	}
+	completedChannel := make(chan struct{})
+	defer close(completedChannel)
+	go func() {
+		select {
+		case <-ctx.Done():
+			err := rows.Close()
+			if err != nil {
+				return
+			}
+		case <-completedChannel:
+			return
+		}
+	}()
+
+	return rows, nil
+}
+
 type driverRows struct {
 	ctx  context.Context
 	stmt *driverStmt
@@ -329,34 +396,41 @@ type driverRows struct {
 	coltype       []*typeConverter
 }
 
+type streamDriverRows struct {
+	ctx  context.Context
+	stmt *driverStmt
+
+	streamClient  proto.SynapseService_StreamExecuteClient
+	id            string
+	resultRawData *commonProto.Results
+	err           error
+	rowindex      int
+	columns       []string
+	coltype       []*typeConverter
+	hasNext       bool
+}
+
 var _ driver.Rows = &driverRows{}
 
+var _ driver.Rows = &streamDriverRows{}
+
 func (qr *driverRows) Close() error {
-	// TODO remove next URI, synapse go client does not need next uri
-	//if qr.nextURI != "" {
-	//	hs := make(http.Header)
-	//	hs.Add(kinedbUserHeader, qr.stmt.user)
-	//	req, err := qr.stmt.conn.newRequest("DELETE", qr.nextURI, nil, hs)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	ctx, cancel := context.WithDeadline(
-	//		context.Background(),
-	//		time.Now().Add(DefaultCancelQueryTimeout),
-	//	)
-	//	defer cancel()
-	//	resp, err := qr.stmt.conn.roundTrip(ctx, req)
-	//	if err != nil {
-	//		qferr, ok := err.(*ErrQueryFailed)
-	//		if ok && qferr.StatusCode == http.StatusNoContent {
-	//			qr.nextURI = ""
-	//			return nil
-	//		}
-	//		return err
-	//	}
-	//	resp.Body.Close()
-	//}
 	return qr.err
+}
+
+func (qr *streamDriverRows) Close() error {
+	if qr.streamClient != nil {
+		//err := qr.streamClient.CloseSend().Error()
+		//return errors.New(err)
+	}
+	return nil
+}
+
+func (qr *streamDriverRows) Columns() []string {
+	if qr.err != nil {
+		return []string{}
+	}
+	return qr.columns
 }
 
 func (qr *driverRows) Columns() []string {
@@ -393,6 +467,47 @@ func (qr *driverRows) Next(dest []driver.Value) error {
 		qr.err = sql.ErrNoRows
 		return qr.err
 	}
+	for i, v := range qr.coltype {
+		vv, err := v.ConvertValue(qr.resultRawData.Rows[qr.rowindex].Columns[i])
+		if err != nil {
+			qr.err = err
+			return err
+		}
+		dest[i] = vv
+	}
+	qr.rowindex++
+	return nil
+}
+
+func (qr *streamDriverRows) Next(dest []driver.Value) error {
+	if qr.err != nil {
+		return qr.err
+	}
+
+	if qr.resultRawData == nil || len(qr.resultRawData.Rows) == 0 {
+		// fetch next batch page rows
+		if err := qr.streamFetch(false); err != nil {
+			return err
+		}
+		// reset rowindex
+		qr.rowindex = 0
+	}
+	// check if no more rows from database
+	//reach the last row
+	if !qr.hasNext && qr.rowindex == len(qr.resultRawData.Rows) {
+		return &EOF{QueryID: qr.id}
+	}
+
+	if qr.columns == nil || qr.rowindex >= len(qr.resultRawData.Rows) {
+		return &EOF{QueryID: qr.id}
+	}
+	if len(qr.coltype) == 0 {
+		qr.err = sql.ErrNoRows
+		return qr.err
+	}
+	// if len(dest) == 0 {
+	// 	dest = make([]driver.Value, len(qr.coltype))
+	// }
 	for i, v := range qr.coltype {
 		vv, err := v.ConvertValue(qr.resultRawData.Rows[qr.rowindex].Columns[i])
 		if err != nil {
@@ -450,11 +565,34 @@ func handleResponseError(status int, respErr stmtError) error {
 	}
 }
 
-// deser result data, and cache
+// init result data, and cache
 func (qr *driverRows) fetch(allowEOF bool) error {
 	if qr.columns == nil && len(qr.resultRawData.Rows) > 0 {
 		qr.initColumns()
 	}
+	return nil
+}
+
+func (qr *streamDriverRows) streamFetch(allowEOF bool) error {
+	// fetch one batch (page) rows
+	res, err := qr.streamClient.Recv()
+	if err == io.EOF {
+		qr.hasNext = false
+		return nil
+	}
+	if err != nil {
+		qr.hasNext = false
+		return err
+	}
+	if len(res.Rows) == 0 {
+		qr.hasNext = false
+		return nil
+	}
+	qr.resultRawData = res
+	if qr.columns == nil && len(qr.resultRawData.Rows) > 0 {
+		qr.columns, qr.coltype = initColumns(qr.resultRawData)
+	}
+	qr.hasNext = true
 	return nil
 }
 
@@ -467,6 +605,18 @@ func (qr *driverRows) initColumns() {
 		qr.columns[i] = col.Name
 		qr.coltype[i] = newTypeConverter(col.Type)
 	}
+}
+
+func initColumns(resultRawData *commonProto.Results) (columns []string, coltype []*typeConverter) {
+	firstRow := resultRawData.Rows[0]
+	columns = make([]string, len(firstRow.Columns))
+	coltype = make([]*typeConverter, len(firstRow.Columns))
+
+	for i, col := range firstRow.Columns {
+		columns[i] = col.Name
+		coltype[i] = newTypeConverter(col.Type)
+	}
+	return
 }
 
 type typeConverter struct {

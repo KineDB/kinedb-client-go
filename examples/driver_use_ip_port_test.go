@@ -3,6 +3,7 @@ package examples
 import (
 	"context"
 	"fmt"
+	"io"
 	"testing"
 
 	client "github.com/KineDB/kinedb-client-go/client/api"
@@ -78,4 +79,27 @@ func TestSimpleDeleteClient(t *testing.T) {
 	res := client.ExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql, Engine: "native"})
 
 	fmt.Printf("res: %+v", res)
+}
+
+func TestSimpleStreamQuery(t *testing.T) {
+	// init addr discovery
+	kinedb.DiscoveryAddr("127.0.0.1:2379")
+
+	// query
+	sql := "select * from tpch1g.customer"
+	ctx := context.Background()
+	streamClient := client.StreamExecuteSQL(ctx, model.ExecuteSQLRequest{Sql: sql, Engine: "native"})
+	var index = 0
+	for {
+		res, err := streamClient.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			fmt.Printf("TestSimpleStreamQuery err: %+v", err)
+			break
+		}
+		fmt.Printf("TestSimpleStreamQuery rows index: %d, rows number:[%+v] \n", index, len(res.Rows))
+		index++
+	}
 }

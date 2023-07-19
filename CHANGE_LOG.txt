@@ -1,3 +1,11 @@
+2023-07-18
+Features
+1. kinedb support stream query for big table have millions rows
+2. stream query dsn jdbc:kine://ip:port/database[?fetchSize=1000&enableStreamQuery=true]
+	fetchSize for one batch fetch from server default is 1000
+	enableStreamQuery make sure use the stream query
+
+
 3.20.1 (2023-06-27)
 Features
 1. kinedb support execute query with presto 

@@ -31,5 +31,38 @@ func (c *synapseServiceRemoteClient) Execute(ctx context.Context, in *proto.Stat
 	return m, errors.ConvertSynapseExceptionToGrpcError(err)
 }
 
+func (c *synapseServiceRemoteClient) StreamExecute(ctx context.Context, in *proto.Statement, opts ...grpc.CallOption) (SynapseService_StreamExecuteClient, error) {
+	x, err := c.c.StreamExecute(ctx, in, opts...)
+	return &synapseServiceStreamExecuteRemoteClient{x.(*synapseServiceStreamExecuteClient), x.(*synapseServiceStreamExecuteClient).ClientStream}, errors.ConvertSynapseExceptionToGrpcError(err)
+}
+
+type synapseServiceStreamExecuteRemoteClient struct {
+	x *synapseServiceStreamExecuteClient
+	grpc.ClientStream
+}
+
+func (x *synapseServiceStreamExecuteRemoteClient) Recv() (*proto.Results, error) {
+	m, err := x.x.Recv()
+	return m, errors.ConvertSynapseExceptionToGrpcError(err)
+}
+
+func _SynapseService_StreamExecute_HandlerExt(srv interface{}, stream grpc.ServerStream) error {
+	m := new(proto.Statement)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SynapseServiceServer).StreamExecute(m, &synapseServiceStreamExecuteServerExt{stream})
+}
+
+type synapseServiceStreamExecuteServerExt struct {
+	grpc.ServerStream
+}
+
+func (x *synapseServiceStreamExecuteServerExt) Send(m *proto.Results) error {
+	err := x.ServerStream.SendMsg(m)
+	return errors.ConvertSynapseExceptionToGrpcError(err)
+}
+
 func init() {
+	SynapseService_ServiceDesc.Streams[0].Handler = _SynapseService_StreamExecute_HandlerExt
 }

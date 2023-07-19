@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type SynapseServiceClient interface {
 	Execute(ctx context.Context, in *proto.Statement, opts ...grpc.CallOption) (*proto.Results, error)
+	StreamExecute(ctx context.Context, in *proto.Statement, opts ...grpc.CallOption) (SynapseService_StreamExecuteClient, error)
 }
 
 type synapseServiceClient struct {
@@ -43,11 +44,44 @@ func (c *synapseServiceClient) Execute(ctx context.Context, in *proto.Statement,
 	return out, nil
 }
 
+func (c *synapseServiceClient) StreamExecute(ctx context.Context, in *proto.Statement, opts ...grpc.CallOption) (SynapseService_StreamExecuteClient, error) {
+	stream, err := c.cc.NewStream(ctx, &SynapseService_ServiceDesc.Streams[0], "/proto.SynapseService/streamExecute", opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &synapseServiceStreamExecuteClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type SynapseService_StreamExecuteClient interface {
+	Recv() (*proto.Results, error)
+	grpc.ClientStream
+}
+
+type synapseServiceStreamExecuteClient struct {
+	grpc.ClientStream
+}
+
+func (x *synapseServiceStreamExecuteClient) Recv() (*proto.Results, error) {
+	m := new(proto.Results)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // SynapseServiceServer is the server API for SynapseService service.
 // All implementations should embed UnimplementedSynapseServiceServer
 // for forward compatibility
 type SynapseServiceServer interface {
 	Execute(context.Context, *proto.Statement) (*proto.Results, error)
+	StreamExecute(*proto.Statement, SynapseService_StreamExecuteServer) error
 }
 
 // UnimplementedSynapseServiceServer should be embedded to have forward compatible implementations.
@@ -56,6 +90,9 @@ type UnimplementedSynapseServiceServer struct {
 
 func (UnimplementedSynapseServiceServer) Execute(context.Context, *proto.Statement) (*proto.Results, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Execute not implemented")
+}
+func (UnimplementedSynapseServiceServer) StreamExecute(*proto.Statement, SynapseService_StreamExecuteServer) error {
+	return status.Errorf(codes.Unimplemented, "method StreamExecute not implemented")
 }
 
 // UnsafeSynapseServiceServer may be embedded to opt out of forward compatibility for this service.
@@ -87,6 +124,27 @@ func _SynapseService_Execute_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SynapseService_StreamExecute_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(proto.Statement)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SynapseServiceServer).StreamExecute(m, &synapseServiceStreamExecuteServer{stream})
+}
+
+type SynapseService_StreamExecuteServer interface {
+	Send(*proto.Results) error
+	grpc.ServerStream
+}
+
+type synapseServiceStreamExecuteServer struct {
+	grpc.ServerStream
+}
+
+func (x *synapseServiceStreamExecuteServer) Send(m *proto.Results) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // SynapseService_ServiceDesc is the grpc.ServiceDesc for SynapseService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -99,6 +157,12 @@ var SynapseService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _SynapseService_Execute_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "streamExecute",
+			Handler:       _SynapseService_StreamExecute_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "synapse.proto",
 }

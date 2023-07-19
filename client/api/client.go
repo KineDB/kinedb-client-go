@@ -37,17 +37,89 @@ func getSClient() proto.SynapseServiceClient {
 	return sClients[address]
 }
 
+func getSClientWithAddr(address string) proto.SynapseServiceClient {
+
+	if !utils.Contains(sClients, address) {
+		startSClient(address)
+	}
+	log.Infof("getSClient %+v", sClients)
+	return sClients[address]
+}
+
 func ExecuteSQL(ctx context.Context, request model.ExecuteSQLRequest) *commonProto.Results {
 	log.Infof("ExecuteSQL sql: %+v", request)
 	//sessionId := session.GetSessionId(ctx)
 	//log.Infof("ExecuteSQL sql sessionId: {}", sessionId)
 	client := getSClient()
-	stmt := &commonProto.Statement{Sql: request.Sql, Gql: request.Gql, Engine: request.Engine, Prompt: request.Prompt}
+	stmt := &commonProto.Statement{
+		Sql:             request.Sql,
+		Gql:             request.Gql,
+		Engine:          request.Engine,
+		Prompt:          request.Prompt,
+		DefaultDatabase: request.DefaultDatabase,
+		FetchSize:       request.FetchSize,
+	}
 	result, err := client.Execute(ctx, stmt)
 	if utils.NotNil(err) {
 		panic(err)
 	}
 	return result
+}
+
+func StreamExecuteSQL(ctx context.Context, request model.ExecuteSQLRequest) proto.SynapseService_StreamExecuteClient {
+	log.Infof("StreamExecuteSQL sql: %+v", request)
+	client := getSClient()
+	stmt := &commonProto.Statement{
+		Sql:             request.Sql,
+		Gql:             request.Gql,
+		Engine:          request.Engine,
+		Prompt:          request.Prompt,
+		DefaultDatabase: request.DefaultDatabase,
+		FetchSize:       request.FetchSize,
+	}
+	streamClient, err := client.StreamExecute(ctx, stmt)
+	if utils.NotNil(err) {
+		panic(err)
+	}
+	return streamClient
+}
+
+func ExecuteSQLWithAddr(ctx context.Context, address string, request model.ExecuteSQLRequest) *commonProto.Results {
+	log.Infof("ExecuteSQL sql: %+v", request)
+	//sessionId := session.GetSessionId(ctx)
+	//log.Infof("ExecuteSQL sql sessionId: {}", sessionId)
+	client := getSClientWithAddr(address)
+	stmt := &commonProto.Statement{
+		Sql:             request.Sql,
+		Gql:             request.Gql,
+		Engine:          request.Engine,
+		Prompt:          request.Prompt,
+		DefaultDatabase: request.DefaultDatabase,
+		FetchSize:       request.FetchSize,
+	}
+	result, err := client.Execute(ctx, stmt)
+	if utils.NotNil(err) {
+		panic(err)
+	}
+	return result
+}
+
+func StreamExecuteSQLWithAddr(ctx context.Context, addr string, request model.ExecuteSQLRequest) proto.SynapseService_StreamExecuteClient {
+	log.Infof("StreamExecuteSQL sql: %+v", request)
+	client := getSClientWithAddr(addr)
+	stmt := &commonProto.Statement{
+		Sql:             request.Sql,
+		Gql:             request.Gql,
+		Engine:          request.Engine,
+		Prompt:          request.Prompt,
+		DefaultDatabase: request.DefaultDatabase,
+		FetchSize:       request.FetchSize,
+	}
+	streamClient, err := client.StreamExecute(ctx, stmt)
+	if utils.NotNil(err) {
+		panic(err)
+	}
+	return streamClient
 }
 
 func startSClient(address string) {
